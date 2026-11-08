@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JBJ Sea Freight</title>
+
+<link href="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css" rel="stylesheet">
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #071522;
+  font-family: Arial, sans-serif;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+.title-box {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  background: rgba(4, 19, 34, 0.9);
+  border: 1px solid #16cfff;
+  border-radius: 12px;
+  padding: 12px 22px;
+  color: white;
+  text-align: center;
+  box-shadow: 0 0 18px #008cff88;
+  pointer-events: none;
+}
+
+.title-box h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: 2px;
+}
+
+.title-box p {
+  margin: 5px 0 0;
+  color: #53d9ff;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+.port-label {
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px #000, 0 0 6px #000;
+  margin-top: 5px;
+}
+
+.port-dot {
+  width: 9px;
+  height: 9px;
+  background: #00d9ff;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 12px #00d9ff;
+}
+
+.rotterdam-dot {
+  width: 17px;
+  height: 17px;
+  background: #ff3030;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 20px red;
+}
+
+.ship-marker {
+  font-size: 35px;
+  width: 55px;
+  text-align: center;
+  filter: drop-shadow(0 0 8px #00d9ff);
+}
+
+.ship-label {
+  background: #071522;
+  border: 1px solid #00d9ff;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 5px;
+  text-align: center;
+  margin-top: -2px;
+}
+
+.info-box {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 5;
+  color: white;
+  background: rgba(4, 19, 34, 0.9);
+  border: 1px solid #168dce;
+  border-radius: 9px;
+  padding: 12px 16px;
+  font-size: 12px;
+  line-height: 1.6;
+  box-shadow: 0 0 12px #008cff55;
+  pointer-events: none;
+}
+
+.info-box strong {
+  color: #45d9ff;
+}
+
+@media (max-width: 600px) {
+  .title-box {
+    top: 10px;
+    padding: 9px 13px;
+  }
+  .title-box h2 {
+    font-size: 15px;
+  }
+  .info-box {
+    bottom: 10px;
+    left: 10px;
+    font-size: 10px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="map"></div>
+
+<div class="title-box">
+  <h2>JBJ SEA FREIGHT</h2>
+  <p>GLOBAL CONTAINER SHIPPING NETWORK</p>
+</div>
+
+<div class="info-box">
+  <strong>JBJ GLOBAL SHIPPING</strong><br>
+  Home port: Rotterdam<br>
+  Destinations: 20 world ports<br>
+  <span id="destination">Preparing voyage...</span>
+</div>
+
+<script src="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js"></script>
+
+<script>
+const ports = [
+  {name:"Rotterdam", country:"Netherlands", coordinates:[4.4777,51.9244]},
+  {name:"Shanghai", country:"China", coordinates:[121.4737,31.2304]},
+  {name:"Singapore", country:"Singapore", coordinates:[103.8198,1.3521]},
+  {name:"Ningbo-Zhoushan", country:"China", coordinates:[121.5503,29.8683]},
+  {name:"Shenzhen", country:"China", coordinates:[114.0579,22.5431]},
+  {name:"Busan", country:"South Korea", coordinates:[129.0756,35.1796]},
+  {name:"Hong Kong", country:"China", coordinates:[114.1694,22.3193]},
+  {name:"Port Klang", country:"Malaysia", coordinates:[101.3926,3.0000]},
+  {name:"Jebel Ali", country:"UAE", coordinates:[55.0273,24.9857]},
+  {name:"Los Angeles", country:"USA", coordinates:[-118.2437,34.0522]},
+  {name:"Long Beach", country:"USA", coordinates:[-118.1937,33.7701]},
+  {name:"New York", country:"USA", coordinates:[-74.0060,40.7128]},
+  {name:"Vancouver", country:"Canada", coordinates:[-123.1207,49.2827]},
+  {name:"Santos", country:"Brazil", coordinates:[-46.3289,-23.9608]},
+  {name:"Cartagena", country:"Colombia", coordinates:[-75.5144,10.3910]},
+  {name:"Callao", country:"Peru", coordinates:[-77.1181,-12.0566]},
+  {name:"Melbourne", country:"Australia", coordinates:[144.9631,-37.8136]},
+  {name:"Sydney", country:"Australia", coordinates:[151.2093,-33.8688]},
+  {name:"Durban", country:"South Africa", coordinates:[31.0218,-29.8587]},
+  {name:"Tanger Med", country:"Morocco", coordinates:[-5.5083,35.8888]}
+];
+
+const rotterdam = ports[0];
+
+const map = new maplibregl.Map({
+  container: "map",
+  style: "https://tiles.openfreemap.org/styles/fiord",
+  center: [10, 20],
+  zoom: 1.5,
+  minZoom: 1.2,
+  maxZoom: 7,
+  projection: "mercator"
+});
+
+map.addControl(new maplibregl.NavigationControl(), "top-right");
+
+function createRoute(start, end) {
+  const points = [];
+  const a = start;
+  const b = end;
+
+  const toRadians = value => value * Math.PI / 180;
+  const toDegrees = value => value * 180 / Math.PI;
+
+  const lat1 = toRadians(a[1]);
+  const lon1 = toRadians(a[0]);
+  const lat2 = toRadians(b[1]);
+  const lon2 = toRadians(b[0]);
+
+  const x1 = Math.cos(lat1) * Math.cos(lon1);
+  const y1 = Math.cos(lat1) * Math.sin(lon1);
+  const z1 = Math.sin(lat1);
+
+  const x2 = Math.cos(lat2) * Math.cos(lon2);
+  const y2 = Math.cos(lat2) * Math.sin(lon2);
+  const z2 = Math.sin(lat2);
+
+  const dot = Math.max(-1, Math.min(1,
+    x1*x2 + y1*y2 + z1*z2
+  ));
+
+  const omega = Math.acos(dot);
+  const sinOmega = Math.sin(omega);
+
+  for (let i = 0; i <= 100; i++) {
+    const t = i / 100;
+
+    let x, y, z;
+
+    if (sinOmega < 0.0001) {
+      x = x1 + (x2-x1)*t;
+      y = y1 + (y2-y1)*t;
+      z = z1 + (z2-z1)*t;
+    } else {
+      const s1 = Math.sin((1-t)*omega)/sinOmega;
+      const s2 = Math.sin(t*omega)/sinOmega;
+
+      x = s1*x1 + s2*x2;
+      y = s1*y1 + s2*y2;
+      z = s1*z1 + s2*z2;
+    }
+
+    const lon = toDegrees(Math.atan2(y,x));
+    const lat = toDegrees(Math.atan2(z,Math.sqrt(x*x+y*y)));
+
+    points.push([lon,lat]);
+  }
+
+  return points;
+}
+
+function addPortMarkers() {
+  ports.forEach((port, index) => {
+    const element = document.createElement("div");
+    element.style.display = "flex";
+    element.style.flexDirection = "column";
+    element.style.alignItems = "center";
+
+    const dot = document.createElement("div");
+    dot.className = index === 0 ? "rotterdam-dot" : "port-dot";
+
+    const label = document.createElement("div");
+    label.className = "port-label";
+    label.textContent = port.name;
+
+    element.appendChild(dot);
+    element.appendChild(label);
+
+    new maplibregl.Marker({
+      element: element,
+      anchor: "center"
+    })
+    .setLngLat(port.coordinates)
+    .addTo(map);
+  });
+}
+
+function addShip() {
+  const element = document.createElement("div");
+  element.innerHTML = `
+    <div class="ship-marker">🚢</div>
+    <div class="ship-label">JBJ</div>
+  `;
+
+  const marker = new maplibregl.Marker({
+    element: element,
+    anchor: "center"
+  })
+  .setLngLat(rotterdam.coordinates)
+  .addTo(map);
+
+  return marker;
+}
+
+function addRoutes() {
+  const features = [];
+
+  ports.slice(1).forEach(port => {
+    features.push({
+      type: "Feature",
+      properties: {name:port.name},
+      geometry: {
+        type: "LineString",
+        coordinates: createRoute(
+          rotterdam.coordinates,
+          port.coordinates
+        )
+      }
+    });
+  });
+
+  map.addSource("sea-routes", {
+    type: "geojson",
+    data: {
+      type: "FeatureCollection",
+      features: features
+    }
+  });
+
+  map.addLayer({
+    id: "route-glow",
+    type: "line",
+    source: "sea-routes",
+    paint: {
+      "line-color": "#00aaff",
+      "line-width": 7,
+      "line-blur": 5,
+      "line-opacity": 0.45
+    }
+  });
+
+  map.addLayer({
+    id: "route-lines",
+    type: "line",
+    source: "sea-routes",
+    paint: {
+      "line-color": "#29d9ff",
+      "line-width": 1.7,
+      "line-opacity": 0.8
+    }
+  });
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve,ms));
+}
+
+function animateShip(marker, coordinates, duration) {
+  return new Promise(resolve => {
+    const startTime = performance.now();
+
+    function frame(now) {
+      const progress = Math.min((now-startTime)/duration,1);
+      const position = progress*(coordinates.length-1);
+      const index = Math.floor(position);
+      const next = Math.min(index+1,coordinates.length-1);
+      const fraction = position-index;
+
+      const a = coordinates[index];
+      const b = coordinates[next];
+
+      const lon = a[0] + (b[0]-a[0])*fraction;
+      const lat = a[1] + (b[1]-a[1])*fraction;
+
+      marker.setLngLat([lon,lat]);
+
+      if (progress < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        resolve();
+      }
+    }
+
+    requestAnimationFrame(frame);
+  });
+}
+
+async function startVoyage(marker) {
+  while (true) {
+    const destination =
+      ports[1 + Math.floor(Math.random()*(ports.length-1))];
+
+    document.getElementById("destination").textContent =
+      "Sailing to: " + destination.name;
+
+    const outbound = createRoute(
+      rotterdam.coordinates,
+      destination.coordinates
+    );
+
+    await animateShip(marker,outbound,18000);
+
+    document.getElementById("destination").textContent =
+      "Arrived: " + destination.name;
+
+    await sleep(2500);
+
+    document.getElementById("destination").textContent =
+      "Returning to Rotterdam";
+
+    const inbound = [...outbound].reverse();
+
+    await animateShip(marker,inbound,18000);
+
+    document.getElementById("destination").textContent =
+      "Back in Rotterdam";
+
+    await sleep(2500);
+  }
+}
+
+map.on("load", () => {
+  addRoutes();
+  addPortMarkers();
+
+  const ship = addShip();
+
+  startVoyage(ship);
+});
+</script>
+
+</body>
+</html>
