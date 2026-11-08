@@ -29,7 +29,7 @@ html, body {
   left: 50%;
   transform: translateX(-50%);
   z-index: 5;
-  background: rgba(4, 19, 34, 0.9);
+  background: rgba(4, 19, 34, 0.92);
   border: 1px solid #16cfff;
   border-radius: 12px;
   padding: 12px 22px;
@@ -79,23 +79,41 @@ html, body {
   box-shadow: 0 0 20px red;
 }
 
-.ship-marker {
-  font-size: 35px;
-  width: 55px;
-  text-align: center;
-  filter: drop-shadow(0 0 8px #00d9ff);
+/* JBJ marker met Bulgaarse vlag */
+
+.jbj-marker {
+  width: 32px;
+  height: 32px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #42e5ff;
+  box-shadow: 0 0 8px #00cfff, 0 0 20px #00aaff;
+  background: linear-gradient(
+    to bottom,
+    #ffffff 0%,
+    #ffffff 33.33%,
+    #00966e 33.33%,
+    #00966e 66.66%,
+    #d62612 66.66%,
+    #d62612 100%
+  );
 }
 
-.ship-label {
-  background: #071522;
-  border: 1px solid #00d9ff;
+.jbj-marker::after {
+  content: "JBJ";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.88);
   color: white;
-  font-size: 10px;
+  font-size: 8px;
   font-weight: bold;
-  padding: 2px 6px;
-  border-radius: 5px;
-  text-align: center;
-  margin-top: -2px;
+  padding: 2px 3px;
+  border-radius: 3px;
+  letter-spacing: 0.3px;
 }
 
 .info-box {
@@ -104,7 +122,7 @@ html, body {
   left: 20px;
   z-index: 5;
   color: white;
-  background: rgba(4, 19, 34, 0.9);
+  background: rgba(4, 19, 34, 0.92);
   border: 1px solid #168dce;
   border-radius: 9px;
   padding: 12px 16px;
@@ -123,9 +141,11 @@ html, body {
     top: 10px;
     padding: 9px 13px;
   }
+
   .title-box h2 {
     font-size: 15px;
   }
+
   .info-box {
     bottom: 10px;
     left: 10px;
@@ -155,29 +175,30 @@ html, body {
 
 <script>
 const ports = [
-  {name:"Rotterdam", country:"Netherlands", coordinates:[4.4777,51.9244]},
-  {name:"Shanghai", country:"China", coordinates:[121.4737,31.2304]},
-  {name:"Singapore", country:"Singapore", coordinates:[103.8198,1.3521]},
-  {name:"Ningbo-Zhoushan", country:"China", coordinates:[121.5503,29.8683]},
-  {name:"Shenzhen", country:"China", coordinates:[114.0579,22.5431]},
-  {name:"Busan", country:"South Korea", coordinates:[129.0756,35.1796]},
-  {name:"Hong Kong", country:"China", coordinates:[114.1694,22.3193]},
-  {name:"Port Klang", country:"Malaysia", coordinates:[101.3926,3.0000]},
-  {name:"Jebel Ali", country:"UAE", coordinates:[55.0273,24.9857]},
-  {name:"Los Angeles", country:"USA", coordinates:[-118.2437,34.0522]},
-  {name:"Long Beach", country:"USA", coordinates:[-118.1937,33.7701]},
-  {name:"New York", country:"USA", coordinates:[-74.0060,40.7128]},
-  {name:"Vancouver", country:"Canada", coordinates:[-123.1207,49.2827]},
-  {name:"Santos", country:"Brazil", coordinates:[-46.3289,-23.9608]},
-  {name:"Cartagena", country:"Colombia", coordinates:[-75.5144,10.3910]},
-  {name:"Callao", country:"Peru", coordinates:[-77.1181,-12.0566]},
-  {name:"Melbourne", country:"Australia", coordinates:[144.9631,-37.8136]},
-  {name:"Sydney", country:"Australia", coordinates:[151.2093,-33.8688]},
-  {name:"Durban", country:"South Africa", coordinates:[31.0218,-29.8587]},
-  {name:"Tanger Med", country:"Morocco", coordinates:[-5.5083,35.8888]}
+  {name: "Rotterdam", coordinates: [4.4777, 51.9244]},
+  {name: "Shanghai", coordinates: [121.4737, 31.2304]},
+  {name: "Singapore", coordinates: [103.8198, 1.3521]},
+  {name: "Ningbo-Zhoushan", coordinates: [121.5503, 29.8683]},
+  {name: "Shenzhen", coordinates: [114.0579, 22.5431]},
+  {name: "Qingdao", coordinates: [120.3826, 36.0671]},
+  {name: "Busan", coordinates: [129.0756, 35.1796]},
+  {name: "Hong Kong", coordinates: [114.1694, 22.3193]},
+  {name: "Port Klang", coordinates: [101.3926, 3.0000]},
+  {name: "Jebel Ali", coordinates: [55.0273, 24.9857]},
+  {name: "Los Angeles", coordinates: [-118.2437, 34.0522]},
+  {name: "Long Beach", coordinates: [-118.1937, 33.7701]},
+  {name: "New York", coordinates: [-74.0060, 40.7128]},
+  {name: "Vancouver", coordinates: [-123.1207, 49.2827]},
+  {name: "Santos", coordinates: [-46.3289, -23.9608]},
+  {name: "Cartagena", coordinates: [-75.5144, 10.3910]},
+  {name: "Callao", coordinates: [-77.1181, -12.0566]},
+  {name: "Melbourne", coordinates: [144.9631, -37.8136]},
+  {name: "Sydney", coordinates: [151.2093, -33.8688]},
+  {name: "Durban", coordinates: [31.0218, -29.8587]},
+  {name: "Tanger Med", coordinates: [-5.5083, 35.8888]}
 ];
 
-const rotterdam = ports[0];
+const home = ports[0];
 
 const map = new maplibregl.Map({
   container: "map",
@@ -185,24 +206,21 @@ const map = new maplibregl.Map({
   center: [10, 20],
   zoom: 1.5,
   minZoom: 1.2,
-  maxZoom: 7,
-  projection: "mercator"
+  maxZoom: 7
 });
 
 map.addControl(new maplibregl.NavigationControl(), "top-right");
 
 function createRoute(start, end) {
   const points = [];
-  const a = start;
-  const b = end;
 
-  const toRadians = value => value * Math.PI / 180;
-  const toDegrees = value => value * 180 / Math.PI;
+  const rad = v => v * Math.PI / 180;
+  const deg = v => v * 180 / Math.PI;
 
-  const lat1 = toRadians(a[1]);
-  const lon1 = toRadians(a[0]);
-  const lat2 = toRadians(b[1]);
-  const lon2 = toRadians(b[0]);
+  const lat1 = rad(start[1]);
+  const lon1 = rad(start[0]);
+  const lat2 = rad(end[1]);
+  const lon2 = rad(end[0]);
 
   const x1 = Math.cos(lat1) * Math.cos(lon1);
   const y1 = Math.cos(lat1) * Math.sin(lon1);
@@ -219,8 +237,10 @@ function createRoute(start, end) {
   const omega = Math.acos(dot);
   const sinOmega = Math.sin(omega);
 
-  for (let i = 0; i <= 100; i++) {
-    const t = i / 100;
+  let previousLongitude = start[0];
+
+  for (let i = 0; i <= 150; i++) {
+    const t = i / 150;
 
     let x, y, z;
 
@@ -237,10 +257,15 @@ function createRoute(start, end) {
       z = s1*z1 + s2*z2;
     }
 
-    const lon = toDegrees(Math.atan2(y,x));
-    const lat = toDegrees(Math.atan2(z,Math.sqrt(x*x+y*y)));
+    let lon = deg(Math.atan2(y,x));
+    const lat = deg(Math.atan2(z, Math.sqrt(x*x+y*y)));
 
-    points.push([lon,lat]);
+    // Zorg dat de route over de kortste lengtegraad loopt.
+    while (lon - previousLongitude > 180) lon -= 360;
+    while (lon - previousLongitude < -180) lon += 360;
+
+    previousLongitude = lon;
+    points.push([lon, lat]);
   }
 
   return points;
@@ -272,37 +297,54 @@ function addPortMarkers() {
   });
 }
 
-function addShip() {
+function addJBJMarker() {
   const element = document.createElement("div");
-  element.innerHTML = `
-    <div class="ship-marker">🚢</div>
-    <div class="ship-label">JBJ</div>
-  `;
+  element.className = "jbj-marker";
 
-  const marker = new maplibregl.Marker({
+  return new maplibregl.Marker({
     element: element,
     anchor: "center"
   })
-  .setLngLat(rotterdam.coordinates)
+  .setLngLat(home.coordinates)
   .addTo(map);
-
-  return marker;
 }
 
-function addRoutes() {
+function splitAtDateLine(points) {
+  const lines = [];
+  let current = [points[0]];
+
+  for (let i = 1; i < points.length; i++) {
+    const previous = points[i - 1];
+    const point = points[i];
+
+    if (Math.abs(point[0] - previous[0]) > 180) {
+      if (current.length > 1) lines.push(current);
+      current = [point];
+    } else {
+      current.push(point);
+    }
+  }
+
+  if (current.length > 1) lines.push(current);
+  return lines;
+}
+
+function addRouteLayers() {
   const features = [];
 
   ports.slice(1).forEach(port => {
-    features.push({
-      type: "Feature",
-      properties: {name:port.name},
-      geometry: {
-        type: "LineString",
-        coordinates: createRoute(
-          rotterdam.coordinates,
-          port.coordinates
-        )
-      }
+    const route = createRoute(home.coordinates, port.coordinates);
+    const segments = splitAtDateLine(route);
+
+    segments.forEach(segment => {
+      features.push({
+        type: "Feature",
+        properties: {name: port.name},
+        geometry: {
+          type: "LineString",
+          coordinates: segment
+        }
+      });
     });
   });
 
@@ -322,7 +364,7 @@ function addRoutes() {
       "line-color": "#00aaff",
       "line-width": 7,
       "line-blur": 5,
-      "line-opacity": 0.45
+      "line-opacity": 0.4
     }
   });
 
@@ -338,32 +380,30 @@ function addRoutes() {
   });
 }
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve,ms));
-}
-
-function animateShip(marker, coordinates, duration) {
+function animateMarker(marker, coordinates, duration) {
   return new Promise(resolve => {
     const startTime = performance.now();
 
     function frame(now) {
-      const progress = Math.min((now-startTime)/duration,1);
-      const position = progress*(coordinates.length-1);
+      const progress = Math.min((now - startTime) / duration, 1);
+
+      const position = progress * (coordinates.length - 1);
       const index = Math.floor(position);
-      const next = Math.min(index+1,coordinates.length-1);
-      const fraction = position-index;
+      const next = Math.min(index + 1, coordinates.length - 1);
+      const fraction = position - index;
 
       const a = coordinates[index];
       const b = coordinates[next];
 
-      const lon = a[0] + (b[0]-a[0])*fraction;
-      const lat = a[1] + (b[1]-a[1])*fraction;
+      const lon = a[0] + (b[0] - a[0]) * fraction;
+      const lat = a[1] + (b[1] - a[1]) * fraction;
 
-      marker.setLngLat([lon,lat]);
+      marker.setLngLat([lon, lat]);
 
       if (progress < 1) {
         requestAnimationFrame(frame);
       } else {
+        marker.setLngLat(coordinates[coordinates.length - 1]);
         resolve();
       }
     }
@@ -372,32 +412,51 @@ function animateShip(marker, coordinates, duration) {
   });
 }
 
-async function startVoyage(marker) {
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function startVoyages(marker) {
+  let previousIndex = -1;
+
   while (true) {
-    const destination =
-      ports[1 + Math.floor(Math.random()*(ports.length-1))];
+    // Kies een andere bestemming dan de vorige.
+    let index;
+
+    do {
+      index = 1 + Math.floor(Math.random() * (ports.length - 1));
+    } while (index === previousIndex);
+
+    previousIndex = index;
+
+    const destination = ports[index];
 
     document.getElementById("destination").textContent =
-      "Sailing to: " + destination.name;
+      "Outbound: " + destination.name;
 
+    // Reis van Rotterdam naar de gekozen haven.
     const outbound = createRoute(
-      rotterdam.coordinates,
+      home.coordinates,
       destination.coordinates
     );
 
-    await animateShip(marker,outbound,18000);
+    await animateMarker(marker, outbound, 18000);
 
     document.getElementById("destination").textContent =
       "Arrived: " + destination.name;
 
     await sleep(2500);
 
+    // Reis terug naar Rotterdam.
     document.getElementById("destination").textContent =
       "Returning to Rotterdam";
 
     const inbound = [...outbound].reverse();
 
-    await animateShip(marker,inbound,18000);
+    await animateMarker(marker, inbound, 18000);
+
+    // Controleer dat het bolletje exact in Rotterdam staat.
+    marker.setLngLat(home.coordinates);
 
     document.getElementById("destination").textContent =
       "Back in Rotterdam";
@@ -407,12 +466,16 @@ async function startVoyage(marker) {
 }
 
 map.on("load", () => {
-  addRoutes();
+  addRouteLayers();
   addPortMarkers();
 
-  const ship = addShip();
+  const marker = addJBJMarker();
 
-  startVoyage(ship);
+  startVoyages(marker).catch(error => {
+    console.error("Voyage animation error:", error);
+    document.getElementById("destination").textContent =
+      "Voyage animation error - reload page";
+  });
 });
 </script>
 
